@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="recipeMapper">
+
+	<!-- 상품 등록 -->
+	<insert id="recipeRegister">
+		insert into recipe (recipeNum, recipeName,
+		recipeCateCode, recipePrice,
+		recipeStock, recipeDes, 
+		recipeImg, recipeThumbImg,
+		ingName1,ingName2,ingName3,ingName4,ingName5,ingName6,ingName7,ingName8,ingName9,
+		ingWeight1,ingWeight2,ingWeight3,ingWeight4,ingWeight5,ingWeight6,ingWeight7,ingWeight8,ingWeight9)
+		values
+		(recipe_seq.nextval, #{recipeName},
+		#{recipeCateCode}, #{recipePrice},
+		#{recipeStock}, #{recipeDes},
+		#{recipeImg}, #{recipeThumbImg},
+		#{ingName1}, #{ingName2}, #{ingName3}, #{ingName4}, #{ingName5}, #{ingName6}, #{ingName7}, #{ingName8}, #{ingName9},
+		#{ingWeight1}, #{ingWeight2}, #{ingWeight3}, #{ingWeight4}, #{ingWeight5}, #{ingWeight6}, #{ingWeight7}, #{ingWeight8}, #{ingWeight9}
+		)
+	</insert>
+
+	<select id="recipeList" resultType="spring.web.vo.RecipeVO">
+		select recipeNum, recipeName,
+		recipeCateCode,
+		recipePrice, recipeStock,
+		recipeDes, recipeImg, regDate,
+		recipeThumbImg
+		from recipe
+		WHERE 1=1
+		<include refid="search"></include>
+		order by recipeNum desc
+	</select>
+
+	<select id="listCount"
+		parameterType="spring.web.vo.SearchCriteria" resultType="int">
+		SELECT COUNT(RECIPENUM)
+		FROM RECIPE
+		WHERE 1=1
+		<include refid="search"></include>
+		AND RECIPENUM > 0
+	</select>
+	
+	
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">AND recipeName LIKE '%' || #{keyword} || '%'</if>
+		</if>
+	</sql>
+	
+	<!-- 상품 조회 + 카테고리 조인 -->
+	<select id="recipeView"
+		resultType="spring.web.vo.RecipeVO">
+		select recipeNum, recipeName, recipeCateCode, recipePrice, recipeStock,
+		recipeDes, recipeImg, recipeThumbImg,
+		regDate, ingName1, ingName2, ingName3, ingName4, ingName5, ingName6, ingName7, ingName8, ingName9,
+		ingWeight1,ingWeight2,ingWeight3,ingWeight4,ingWeight5,ingWeight6,ingWeight7,ingWeight8,ingWeight9
+		from recipe
+		where recipeNum =
+		#{recipeNum}
+	</select>
+
+	<!-- 상품 수정 -->
+	<update id="recipeModify">
+		update recipe
+		set
+		recipeName = #{recipeName},
+		recipeCateCode = #{recipeCateCode},
+		recipePrice = #{recipePrice},
+		recipeStock = #{recipeStock},
+		recipeDes = #{recipeDes},
+		recipeImg = #{recipeImg},
+		recipeThumbImg = #{recipeThumbImg},
+		ingName1 = #{ingName1},
+		ingName2 = #{ingName2},
+		ingName3 = #{ingName3},
+		ingName4 = #{ingName4},
+		ingName5 = #{ingName5},
+		ingName6 = #{ingName6},
+		ingName7 = #{ingName7},
+		ingName8 = #{ingName8},
+		ingName9 = #{ingName9},
+		ingWeight1 = #{ingWeight1},
+		ingWeight2 = #{ingWeight2},
+		ingWeight3 = #{ingWeight3},
+		ingWeight4 = #{ingWeight4},
+		ingWeight5 = #{ingWeight5},
+		ingWeight6 = #{ingWeight6},
+		ingWeight7 = #{ingWeight7},
+		ingWeight8 = #{ingWeight8},
+		ingWeight9 = #{ingWeight9}
+		where
+		recipeNum = ${recipeNum}
+	</update>
+
+	<!-- 상품 삭제 -->
+	<delete id="recipeDelete">
+		delete
+		recipe
+		where recipeNum = #{recipeNum}
+	</delete>
+	
+	<!-- 식재료 판매 목록 -->
+	<select id="sellRecipeList" resultType="spring.web.vo.RecipeVO">
+		select recipeNum, recipeName,
+		recipeCateCode, recipePrice, recipeStock,
+		recipeDes, recipeImg, regDate,
+		recipeThumbImg
+		from recipe
+		WHERE 1=1 
+		<include refid="search"></include>
+		order by recipeNum desc
+	</select>
+
+	<!-- 식재료 판매 카테고리별 목록 -->
+	<select id="sellRecipeCateList"
+		resultType="spring.web.vo.RecipeVO">
+		select recipeNum, recipeName, recipeCateCode, recipePrice, recipeStock,
+		recipeDes, recipeImg, regDate, recipeThumbImg
+		from recipe WHERE
+		recipeCateCode = #{recipeCateCode}
+	</select>
+
+	<!-- 식재료 조회 -->
+	<select id="sellRecipeView" resultType="spring.web.vo.RecipeVO">
+		select recipeNum, recipeName,
+		recipeCateCode, recipePrice, recipeStock,
+		recipeDes, recipeImg,
+		recipeThumbImg,
+		regDate, ingName1, ingName2, ingName3, ingName4, ingName5, ingName6, ingName7, ingName8, ingName9,
+		ingWeight1,ingWeight2,ingWeight3,ingWeight4,ingWeight5,ingWeight6,ingWeight7,ingWeight8,ingWeight9 from recipe where recipeNum = #{recipeNum}
+	</select>
+
+	<!-- 식재료 후기(댓글) 작성 -->
+	<insert id="registRecipeReply">
+		insert into recipe_reply (recipeNum, userId, repNum,
+		repCon)
+		values (#{recipeNum}, #{userId}, recipe_reply_seq.nextval, #{repCon})
+	</insert>
+
+	<!-- 식재료 후기 목록 -->
+	<select id="recipeReplyList"
+		resultType="spring.web.vo.RecipeReplyListVO">
+		select
+		r.recipeNum, r.userId, r.repNum, r.repCon, r.repDate,
+		m.userId
+		from recipe_reply r
+		inner join member m
+		on r.userId = m.userId
+		where recipeNum = #{recipeNum}
+	</select>
+
+	<!-- 식재료 후기(댓글) 삭제 -->
+	<delete id="deleteRecipeReply">
+		delete recipe_reply
+		where repNum = #{repNum}
+		and userId =
+		#{userId}
+	</delete>
+
+	<!-- 아이디 체크 -->
+	<select id="replyUserIdCheck" resultType="String">
+		select userId
+		from
+		recipe_reply
+		where repNum = #{repNum}
+	</select>
+
+	<!-- 상품 후기(댓글) 수정 -->
+	<update id="modifyRecipeReply">
+		update recipe_reply
+		set
+		repCon = #{repCon}
+		where repNum = #{repNum}
+		and userId = #{userId}
+	</update>
+</mapper>
